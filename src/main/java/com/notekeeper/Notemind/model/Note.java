@@ -10,32 +10,24 @@ public class Note {
 
     @Id
     private String id;
-
     private String userId;
     private String title;
-
-    private String content;   // stores summary separately
-
+    private String content;
+    private String summary;// stores summary separately
     private Instant createdAt;
     private Instant updatedAt;
 
     public Note() {}
 
-    public Note(String userId, String title, String content) {
+    public Note(String userId, String title, String content, String summary) {
         this.userId = userId;
         this.title = title;
         this.content = content;
+        this.summary = summary;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }
 
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
 
 // getters and setters
 
@@ -48,6 +40,11 @@ public class Note {
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 
+    public String getContent() {return content;}
+    public void setContent(String content) {this.content = content;}
+
+    public String getSummary() {return summary;}
+    public void setSummary(String summary) {this.summary = summary;}
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
