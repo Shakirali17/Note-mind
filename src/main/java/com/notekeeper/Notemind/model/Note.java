@@ -12,22 +12,23 @@ public class Note {
     private String id;
     private String userId;
     private String title;
-    private String content;
-    private String summary;// stores summary separately
+    private String transcription;
+    private String summary;
+    private String transcriptId;// stores summary separately
     private Instant createdAt;
     private Instant updatedAt;
 
     public Note() {}
 
-    public Note(String userId, String title, String content, String summary) {
+    public Note(String userId, String title, String transcription, String summary, String transcriptId) {
         this.userId = userId;
         this.title = title;
-        this.content = content;
+        this.transcription = transcription;
         this.summary = summary;
+        this.transcriptId = transcriptId;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }
-
 
 // getters and setters
 
@@ -40,11 +41,14 @@ public class Note {
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 
-    public String getContent() {return content;}
-    public void setContent(String content) {this.content = content;}
+    public String getTranscription() {return transcription;}
+    public void setTranscription(String transcription) {this.transcription = transcription;}
 
     public String getSummary() {return summary;}
     public void setSummary(String summary) {this.summary = summary;}
+
+    public String getTranscriptId() {return transcriptId;}
+    public void setTranscriptId(String transcriptId) {this.transcriptId = transcriptId;}
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

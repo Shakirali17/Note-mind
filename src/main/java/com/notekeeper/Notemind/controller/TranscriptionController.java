@@ -5,10 +5,13 @@ import com.notekeeper.Notemind.service.SummarizerService;
 import com.notekeeper.Notemind.service.TranscriptionService;
 import com.notekeeper.Notemind.service.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -39,34 +42,71 @@ public class TranscriptionController {
             // Step 1: Upload to AssemblyAI
             String audioUrl = assemblyAIService.uploadAudio(file.getBytes());
 
-            // Step 2: Request transcription (with summarization enabled in service)
+            // Step 2: Request transcription
             String transcriptId = assemblyAIService.requestTranscription(audioUrl);
 
-            // Step 3: Wait for transcription + summary completion
-            Map<String, String> transcriptData = assemblyAIService.getTranscriptionResult(transcriptId);
-            String transcriptText = transcriptData.get("text");
-            String summaryText = transcriptData.get("summary");
+            // Step 3: Fetch transcription result
+            Map<String, String> transcriptionData = assemblyAIService.getTranscriptionResult(transcriptId);
+            String transcriptText = transcriptionData.get("text");
 
-            // Step 4: Save in MongoDB
+            // ✅ Create Note object correctly
             Note note = new Note(
                     userId,
                     title != null ? title : "Untitled",
-                    transcriptText,
-                    summaryText
+                    transcriptText,// ✅ fixed here
+                    null,           // summary will come later…
+                    transcriptId
             );
 
-            noteService.createNote(note);
+            // ✅ Save Note and get saved object
+            Note savedNote = noteService.createNote(note);
 
-            // Step 5: Send back response
             return ResponseEntity.ok(Map.of(
-                    "message", "✅ Note saved successfully!",
-                    "transcription", transcriptText,
-                    "summary", summaryText
+                    "message", "✅ Transcription done! Summary can be generated later.",
+                    "noteId", savedNote.getId(), // ✅ fixed here
+                    "transcription", transcriptText
             ));
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.internalServerError().body("❌ Error: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/summarize/{noteId}")
+    public ResponseEntity<Map<String, Object>> summarizeNote(@PathVariable String noteId) {
+        Map<String, Object> response = new HashMap<>();
+
+        return noteService.getNoteById(noteId).map(note -> {
+
+            if (note.getTranscriptId() == null) {
+                response.put("error", "❌ No transcriptId found. Summarization not possible.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+//            if (!summarizeService.isTranscriptReady(note.getTranscriptId())) {
+//                Map<String, Object> resp= new HashMap<>();
+//                resp.put("error", "⏳ Transcript is still processing. Try again after a few seconds!");
+//                return ResponseEntity.status(HttpStatus.ACCEPTED).body(resp);
+//            }
+
+// ✅ Transcript is ready — now summarize!
+            String summary = summarizeService.summarizeTranscript(note.getTranscriptId());
+
+
+            note.setSummary(summary);
+            note.setUpdatedAt(Instant.now());
+            noteService.createNote(note); // ✅ Update note with summary
+
+            response.put("message", "✅ Summary generated and saved!");
+            response.put("noteId", noteId);
+            response.put("summary", summary);
+
+            return ResponseEntity.ok(response);
+
+        }).orElseGet(() -> {
+            response.put("error", "❌ Note not found!");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        });
     }
 }

@@ -34,7 +34,7 @@ public class NoteService {
     public Note updateNote(String id, Note update) {
         return repo.findById(id).map(existing -> {
             if (update.getTitle() != null) existing.setTitle(update.getTitle());
-            if (update.getContent() != null) existing.setContent(update.getContent());
+            if (update.getTranscription() != null) existing.setTranscription(update.getTranscription());
             existing.setUpdatedAt(Instant.now());
             return repo.save(existing);
         }).orElseThrow(() -> new RuntimeException("Note not found"));

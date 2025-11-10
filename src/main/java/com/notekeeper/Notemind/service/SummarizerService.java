@@ -17,7 +17,7 @@ public class SummarizerService {
     private final RestTemplate restTemplate;
 
     // ✅ Correct endpoint for LeMUR (not /summarize)
-    private static final String LEMUR_URL = "https://api.assemblyai.com/v2/lemur/task";
+    private static final String LEMUR_URL = "https://api.assemblyai.com/lemur/v3/generate/summary";
 
     public SummarizerService(RestTemplateBuilder builder) {
         this.restTemplate = builder.build();
@@ -32,8 +32,9 @@ public class SummarizerService {
             // ✅ Correct request body per AssemblyAI LeMUR API
             Map<String, Object> payload = new HashMap<>();
             payload.put("transcript_ids", Collections.singletonList(transcriptId));
-            payload.put("final_model", "claude-3.5-sonnet"); // latest supported model
+            payload.put("final_model", "anthropic/claude-sonnet-4-20250514"); // latest supported model
             payload.put("prompt", "Summarize the provided transcript in better related bullets points.");
+            payload.put("answer_format","TLDR");
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
 
@@ -51,4 +52,23 @@ public class SummarizerService {
             return "Error during summarization: " + e.getMessage();
         }
     }
+
+//    public boolean isTranscriptReady(String transcriptId) {
+//        try {
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.setBearerAuth(apiKey);
+//
+//            HttpEntity<String> request = new HttpEntity<>(headers);
+//            String url = "https://api.assemblyai.com/v2/transcript/" + transcriptId;
+//
+//            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, request, Map.class);
+//            Map<String, Object> body = response.getBody();
+//
+//            return body != null && "completed".equals(body.get("status"));
+//
+//        } catch (Exception e) {
+//            return false;
+//        }
+//    }
+
 }
