@@ -1,6 +1,8 @@
 package com.notekeeper.Notemind.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.notekeeper.Notemind.model.User;
 import com.notekeeper.Notemind.repository.UserRepository;
@@ -11,22 +13,38 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public String registerUser(User user) {
-        if (userRepository.findByUsername(user.getUsername()) != null) {
-            return "Username already exists!";
+    public ResponseEntity<?> registerUser(User user) {
+
+        User existingUser = userRepository.findByUsername(user.getUsername());
+        if (existingUser != null) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("Username already exists");
         }
+
         userRepository.save(user);
-        return "User registered successfully!";
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body("User registered successfully");
     }
 
-    public String loginUser(User user) {
+    public ResponseEntity<?> loginUser(User user) {
+
         User existingUser = userRepository.findByUsername(user.getUsername());
+
         if (existingUser == null) {
-            return "User not found!";
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("User not found");
         }
+
         if (!existingUser.getPassword().equals(user.getPassword())) {
-            return "Invalid password!";
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid password");
         }
-        return "Login successful!";
+
+        // SUCCESS → return userId (important for frontend)
+        return ResponseEntity.ok(existingUser.getId());
     }
 }
