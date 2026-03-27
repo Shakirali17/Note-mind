@@ -17,7 +17,7 @@ public class SummarizerService {
     private final RestTemplate restTemplate;
 
     // ✅ Correct endpoint for LeMUR (not /summarize)
-    private static final String LEMUR_URL = "https://api.assemblyai.com/lemur/v3/generate/summary";
+    private static final String LEMUR_URL = "https://llm-gateway.assemblyai.com/v1/chat/completions";
 
     public SummarizerService(RestTemplateBuilder builder) {
         this.restTemplate = builder.build();
@@ -32,7 +32,7 @@ public class SummarizerService {
             // ✅ Correct request body per AssemblyAI LeMUR API
             Map<String, Object> payload = new HashMap<>();
             payload.put("transcript_ids", Collections.singletonList(transcriptId));
-            payload.put("final_model", "anthropic/claude-sonnet-4-20250514"); // latest supported model
+            payload.put("final_model", "claude-sonnet-4-20250514"); // latest supported model
             payload.put("prompt", "Summarize the provided transcript in better related bullets points.");
             payload.put("answer_format","TLDR");
 
